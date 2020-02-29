@@ -8,10 +8,12 @@ class APIs {
     try {
       WeatherStation weatherStation =
           new WeatherStation(Constants.WEATHER_API_KEY);
+
       List<Weather> forecasts = await weatherStation.fiveDayForecast();
       if (forecasts == null) {
         forecasts = List<Weather>();
       }
+      print(' forecast after comming $forecasts');
       return ResponseModel(
         errorViewModel: null,
         success: true,

@@ -1,5 +1,6 @@
 import 'package:flutter_app/src/model/ErrorViewModel.dart';
 import 'package:flutter_app/src/model/ResponseModel.dart';
+import 'package:flutter_app/src/model/WeatherViewModel.dart';
 import 'package:flutter_app/src/resources/Constants.dart';
 import 'package:flutter_app/src/resources/NetworkHelper.dart';
 import 'package:flutter_app/src/resources/Repository.dart';
@@ -18,7 +19,13 @@ abstract class WeatherStates {}
 class WeatherFirstLoad extends WeatherStates {}
 
 class WeatherLoaded extends WeatherStates {
-  final List<Weather> weatherResponse;
+  final List<WeatherViewModel> weatherResponse;
+
+  List<WeatherViewModel> getWeatherDistinct() {
+    print(weatherResponse[0].areaName);
+    return weatherResponse.toSet().toList();
+  }
+
   WeatherLoaded({this.weatherResponse});
 }
 
@@ -55,8 +62,14 @@ class WeatherBloc extends HydratedBloc<WeatherEvents, WeatherStates> {
     }
     if (event is LoadWeather) {
       ResponseModel weatherInfo = await Repository.loadWeatherInfo();
+      print("Response returned");
       if (weatherInfo.success) {
-        yield WeatherLoaded(weatherResponse: weatherInfo.successData);
+        List<WeatherViewModel> weatherData = List();
+        (weatherInfo.successData as List<Weather>)
+            .forEach((Weather weatherForecast) {
+          weatherData.add(WeatherViewModel.fromApiResponse(weatherForecast));
+        });
+        yield WeatherLoaded(weatherResponse: weatherData);
       } else {
         yield WeatherLoadingFailed(failureReason: weatherInfo.errorViewModel);
       }
